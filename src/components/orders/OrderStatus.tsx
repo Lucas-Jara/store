@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { IoCardOutline } from "react-icons/io5";
 
 interface Props {
   isPaid: boolean;
@@ -16,7 +15,7 @@ export const OrderStatus = ({ isPaid }: Props) => {
         }
       )}
     >
-      <IoCardOutline size={30} />
+      {/* <IoCardOutline size={30} /> */}
       {/* <span className="mx-2">Pendiente de pago</span> */}
       <span className="mx-2">{isPaid ? "Pagada" : "No pagada"}</span>
     </div>

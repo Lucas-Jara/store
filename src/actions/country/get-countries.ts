@@ -7,7 +7,7 @@ export const getCountries = async() => {
 
   try {
     
-    const countries = await prisma.country.findMany({
+    const countries = await prisma.province.findMany({
       orderBy: {
         name: 'asc'
       }

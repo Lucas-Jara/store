@@ -1,27 +1,35 @@
 export interface Product {
   id: string;
+  title: string;
   description: string;
-  images: string[];
-  inStock: number;
   price: number;
-  sizes: Size[];
   slug: string;
   tags: string[];
-  title: string;
-  //todo: type: Type;
   gender: Category;
+  categoryId: string;
+  sizes: ProductSize[];
+  images: string[];
+}
+
+export interface ProductSize {
+  id: string;
+  inStock: number;
+  limitToBuy: number | null;
+  sizeId: string;
 }
 
 export interface CartProduct {
   id: string;
+  image: string;
+  price: number;
+  sizes: CartProductSize[];
   slug: string;
   title: string;
-  price: number;
-  quantity: number;
-  size: Size;
-  image: string;
 }
 
+export interface CartProductSize extends ProductSize {
+  quantity: number;
+}
 
 export interface ProductImage {
   id: number;
@@ -29,7 +37,5 @@ export interface ProductImage {
   productId: string;
 }
 
-
-type Category = 'men'|'women'|'kid'|'unisex';
-export type Size = 'XS'|'S'|'M'|'L'|'XL'|'XXL'|'XXXL';
-export type Type = 'shirts'|'pants'|'hoodies'|'hats';
+type Category = "men" | "women" | "kid" | "unisex";
+export type Type = "shirts" | "pants" | "hoodies" | "hats";

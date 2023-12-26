@@ -38,7 +38,6 @@ export const PayPalButton = ({ orderId, amount }: Props) => {
           amount: {
             value: `${ rountedAmount }`,
           }
-
         }
       ]
     });

@@ -18,12 +18,10 @@ export default async function ShopLayout( { children }: {
 
   return (
 
-    <main className="flex justify-center">
-      <div className="w-full sm:w-[350px] px-10">
+    <main className="flex items-center justify-center min-h-screen">
 
         { children }
 
-      </div>
     </main>
   );
 }

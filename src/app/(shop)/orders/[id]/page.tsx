@@ -32,12 +32,11 @@ export default async function OrdersByIdPage({ params }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
           {/* Carrito */}
           <div className="flex flex-col mt-5">
-            <OrderStatus isPaid={order?.isPaid ?? false} />
 
             {/* Items */}
-            {order!.OrderItem.map((item) => (
+            {order!.OrderItem.map((item, index) => (
               <div
-                key={item.product.slug + "-" + item.size}
+                key={item.product.slug + "-" + index}
                 className="flex mb-5"
               >
                 <Image
@@ -55,10 +54,10 @@ export default async function OrdersByIdPage({ params }: Props) {
                 <div>
                   <p>{item.product.title}</p>
                   <p>
-                    ${item.price} x {item.quantity}
+                    ${item.price}
                   </p>
                   <p className="font-bold">
-                    Subtotal: {currencyFormat(item.price * item.quantity)}
+                    Subtotal: 99
                   </p>
                 </div>
               </div>
@@ -109,11 +108,8 @@ export default async function OrdersByIdPage({ params }: Props) {
             </div>
 
             <div className="mt-5 mb-2 w-full">
-              {order?.isPaid ? (
-                <OrderStatus isPaid={order?.isPaid ?? false} />
-              ) : (
+                <OrderStatus isPaid={!!order?.transactionId} />
                 <PayPalButton amount={order!.total} orderId={order!.id} />
-              )}
             </div>
           </div>
         </div>

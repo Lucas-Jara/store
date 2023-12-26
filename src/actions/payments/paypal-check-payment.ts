@@ -37,13 +37,12 @@ export const paypalCheckPayment = async (paypalTransactionId: string) => {
   // TODO: Realizar la actualización en nuestra base de datos
   try {
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data:  {
-        isPaid: true,
-        paidAt: new Date()
-      }
-    })
+    // await prisma.order.update({
+    //   where: { id: orderId },
+    //   data:  {
+    //     paidAt: new Date()
+    //   }
+    // })
 
 
     // TODO: Revalidar un path

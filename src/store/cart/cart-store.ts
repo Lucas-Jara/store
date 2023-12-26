@@ -5,7 +5,6 @@ import { persist } from "zustand/middleware";
 interface State {
   cart: CartProduct[];
 
-  getTotalItems: () => number;
   getSummaryInformation: () => {
     subTotal: number;
     tax: number;
@@ -13,10 +12,14 @@ interface State {
     itemsInCart: number;
   };
 
-  addProductTocart: (product: CartProduct) => void;
-  updateProductQuantity: (product: CartProduct, quantity: number) => void;
+  addProductToCart: (product: CartProduct) => void;
+  updateProductQuantity: (
+    product: CartProduct,
+    sizeId: string,
+    quantity: number
+  ) => void;
   removeProduct: (product: CartProduct) => void;
-
+  removeSize: (productId: string, sizeId: string) => void;
   clearCart: () => void;
 }
 
@@ -26,24 +29,26 @@ export const useCartStore = create<State>()(
       cart: [],
 
       // Methods
-      getTotalItems: () => {
-        const { cart } = get();
-        return cart.reduce((total, item) => total + item.quantity, 0);
-      },
 
       getSummaryInformation: () => {
         const { cart } = get();
 
-        const subTotal = cart.reduce(
-          (subTotal, product) => product.quantity * product.price + subTotal,
-          0
-        );
+        const subTotal = cart.reduce((total, item) => {
+          const productSubTotal = item.sizes.reduce(
+            (subTotal, product) => product.quantity * item.price + subTotal,
+            0
+          );
+          return total + productSubTotal;
+        }, 0);
         const tax = subTotal * 0.15;
         const total = subTotal + tax;
-        const itemsInCart = cart.reduce(
-          (total, item) => total + item.quantity,
-          0
-        );
+        const itemsInCart = cart.reduce((total, item) => {
+          const productSubTotal = item.sizes.reduce(
+            (subTotal, product) => product.quantity + subTotal,
+            0
+          );
+          return total + productSubTotal;
+        }, 0);
 
         return {
           subTotal,
@@ -53,51 +58,94 @@ export const useCartStore = create<State>()(
         };
       },
 
-      addProductTocart: (product: CartProduct) => {
+      addProductToCart: (product: CartProduct) => {
         const { cart } = get();
 
-        // 1. Revisar si el producto existe en el carrito con la talla seleccionada
-        const productInCart = cart.some(
-          (item) => item.id === product.id && item.size === product.size
-        );
+        const productIndex = cart.findIndex((item) => item.id === product.id);
 
-        if (!productInCart) {
+        if (productIndex === -1) {
+          // El producto no está en el carrito, lo agregamos directamente
           set({ cart: [...cart, product] });
           return;
         }
 
-        // 2. Se que el producto existe por talla... tengo que incrementar
-        const updatedCartProducts = cart.map((item) => {
-          if (item.id === product.id && item.size === product.size) {
-            return { ...item, quantity: item.quantity + product.quantity };
-          }
+        const existingProduct = cart[productIndex];
 
-          return item;
-        });
+        const sizeIndex = existingProduct.sizes.findIndex(
+          (size) => size.id === product.sizes[0].id
+        );
 
-        set({ cart: updatedCartProducts });
+        if (sizeIndex === -1) {
+          // El producto está en el carrito, pero no con el mismo tamaño
+          existingProduct.sizes.push(product.sizes[0]);
+        } else {
+          // El producto está en el carrito con el mismo tamaño, actualizamos la cantidad
+          existingProduct.sizes[sizeIndex].quantity +=
+            product.sizes[0].quantity;
+        }
+
+        // Actualizamos el carrito
+        const updatedCart = [...cart];
+        updatedCart[productIndex] = existingProduct;
+        set({ cart: updatedCart });
       },
 
-      updateProductQuantity: (product: CartProduct, quantity: number) => {
+      updateProductQuantity: (
+        product: CartProduct,
+        sizeId: string,
+        quantity: number
+      ) => {
         const { cart } = get();
 
-        const updatedCartProducts = cart.map((item) => {
-          if (item.id === product.id && item.size === product.size) {
-            return { ...item, quantity: quantity };
-          }
-          return item;
-        });
+        const productIndex = cart.findIndex((item) => item.id === product.id);
 
-        set({ cart: updatedCartProducts });
+        if (productIndex !== -1) {
+          const existingProduct = { ...cart[productIndex] };
+          const sizeIndex = existingProduct.sizes.findIndex(
+            (size) => size.id === sizeId
+          );
+
+          if (sizeIndex !== -1) {
+            existingProduct.sizes[sizeIndex].quantity = quantity;
+
+            const updatedCart = [...cart];
+            updatedCart[productIndex] = existingProduct;
+
+            set({ cart: updatedCart });
+          }
+        }
       },
 
       removeProduct: (product: CartProduct) => {
         const { cart } = get();
-        const updatedCartProducts = cart.filter(
-          (item) => item.id !== product.id || item.size !== product.size
-        );
 
-        set({ cart: updatedCartProducts });
+        const updatedCart = cart.filter((item) => item.id !== product.id);
+
+        set({ cart: updatedCart });
+      },
+      removeSize: (productId: string, sizeId: string) => {
+        const { cart } = get();
+
+        const productIndex = cart.findIndex((item) => item.id === productId);
+
+        if (productIndex !== -1) {
+          const existingProduct = { ...cart[productIndex] };
+          const updatedSizes = existingProduct.sizes.filter(
+            (size) => size.id !== sizeId
+          );
+
+          if (updatedSizes.length === 0) {
+            // Si no quedan tamaños, elimina el producto completo
+            const updatedCart = cart.filter((item) => item.id !== productId);
+            set({ cart: updatedCart });
+          } else {
+            // Actualiza el carrito con los tamaños actualizados
+            existingProduct.sizes = updatedSizes;
+            const updatedCart = [...cart];
+            updatedCart[productIndex] = existingProduct;
+            set({ cart: updatedCart });
+          }
+        }
       },
 
       clearCart: () => {

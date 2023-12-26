@@ -1,4 +1,4 @@
-import { getCategories, getProductBySlug } from '@/actions';
+import { getCategories, getProductBySlug, getSizes } from '@/actions';
 import { Title } from '@/components';
 import { redirect } from 'next/navigation';
 import { ProductForm } from './ui/ProductForm';
@@ -15,9 +15,10 @@ export default async function ProductPage({ params }: Props) {
 
   const { slug } = params;
 
-  const [ product, categories ] = await Promise.all([
+  const [ product, categories, sizes ] = await Promise.all([
     getProductBySlug(slug),
-    getCategories()
+    getCategories(),
+    getSizes()
   ]);
  
 
@@ -32,7 +33,7 @@ export default async function ProductPage({ params }: Props) {
     <>
       <Title title={ title } />
 
-      <ProductForm product={ product ?? {} } categories={ categories } />
+      <ProductForm product={ product ?? {} } categories={ categories } sizes={sizes} />
     </>
   );
 }

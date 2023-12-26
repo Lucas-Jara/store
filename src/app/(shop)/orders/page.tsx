@@ -6,7 +6,6 @@ import { Title } from "@/components";
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { IoCardOutline } from "react-icons/io5";
 
 export default async function OrdersPage() {
   const { ok, orders = [] } = await getOrdersByUser();
@@ -62,14 +61,14 @@ export default async function OrdersPage() {
                   {order.OrderAddress?.firstName} {order.OrderAddress?.lastName}
                 </td>
                 <td className="flex items-center text-sm  text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                  {order.isPaid ? (
+                  {order.transactionId ? (
                     <>
-                      <IoCardOutline className="text-green-800" />
+                      {/* <IoCardOutline className="text-green-800" /> */}
                       <span className="mx-2 text-green-800">Pagada</span>
                     </>
                   ) : (
                     <>
-                      <IoCardOutline className="text-red-800" />
+                      {/* <IoCardOutline className="text-red-800" /> */}
                       <span className="mx-2 text-red-800">No Pagada</span>
                     </>
                   )}

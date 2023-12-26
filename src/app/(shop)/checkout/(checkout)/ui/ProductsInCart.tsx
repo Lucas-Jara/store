@@ -1,39 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import Image from 'next/image';
+import Image from "next/image";
 
-import { useCartStore } from '@/store';
-import { currencyFormat } from '@/utils';
-
-
+import { useCartStore } from "@/store";
+import { currencyFormat } from "@/utils";
 
 export const ProductsInCart = () => {
-
-
-
   const [loaded, setLoaded] = useState(false);
-  const productsInCart = useCartStore( state => state.cart );
-
+  const productsInCart = useCartStore((state) => state.cart);
 
   useEffect(() => {
-    setLoaded(true) ;
-  },[]);
+    setLoaded(true);
+  }, []);
 
-
-
-
-  if( !loaded ) {
-    return <p>Loading...</p>
+  if (!loaded) {
+    return <p>Loading...</p>;
   }
 
   return (
     <>
       {productsInCart.map((product) => (
-        <div key={ `${ product.slug }-${ product.size }`  } className="flex mb-5">
+        <div
+          key={`${product.slug}-${product.sizes[0].id}`}
+          className="flex mb-5"
+        >
           <Image
-            src={`/products/${product.image }`}
+            src={`/products/${product.image}`}
             width={100}
             height={100}
             style={{
@@ -45,12 +39,14 @@ export const ProductsInCart = () => {
           />
 
           <div>
-            <span>
-              { product.size } - {product.title} ({ product.quantity })
-            </span>
-            
-            <p className="font-bold">{ currencyFormat(product.price * product.quantity )  }</p>
+            <span>{product.title}</span>
 
+            <p className="font-bold">
+              {currencyFormat(
+                product.price *
+                  product.sizes.reduce((total, item) => (total += item.quantity), 0)
+              )}
+            </p>
           </div>
         </div>
       ))}

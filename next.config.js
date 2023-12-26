@@ -7,7 +7,11 @@ const nextConfig = {
         hostname: 'res.cloudinary.com'
       }
     ]
-  }
+  },
+  i18n: {
+    locales: ["en", "it"],
+    defaultLocale: "en",
+  },
 }
 
 module.exports = nextConfig

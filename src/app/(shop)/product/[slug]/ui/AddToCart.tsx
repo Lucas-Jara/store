@@ -1,69 +1,147 @@
 "use client";
 
-import { useState } from "react";
-
-import { QuantitySelector, SizeSelector } from "@/components";
-import type { CartProduct, Product, Size } from "@/interfaces";
-import { useCartStore } from '@/store';
+import { useEffect, useState } from "react";
+import type {
+  CartProduct,
+  CartProductSize,
+  Product,
+  ProductSize,
+  Size,
+} from "@/interfaces";
+import { useCartStore } from "@/store";
+import { Button } from "@/components/ui/button";
+import { MinusIcon, PlusIcon, ShoppingBag } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   product: Product;
+  sizes: Size[];
 }
 
-export const AddToCart = ({ product }: Props) => {
+interface ProductCartSize {
+  sizeId: string;
+  quantity: number;
+}
 
-  const addProductToCart = useCartStore( state => state.addProductTocart );
+export const AddToCart = ({ product, sizes }: Props) => {
+  const addProductToCart = useCartStore((state) => state.addProductToCart);
 
-  const [size, setSize] = useState<Size | undefined>();
-  const [quantity, setQuantity] = useState<number>(1);
-  const [posted, setPosted] = useState(false);
+  const [sizeSelected, setSizeSelected] = useState<{
+    [sizeId: string]: CartProductSize;
+  }>({} as Record<string, CartProductSize>);
 
-  const addToCart = () => {
-    setPosted(true);
+  // Estado temporal del producto en el carrito
+  const [tempProduct, setTempProduct] = useState<CartProduct>({
+    id: product.id,
+    slug: product.slug,
+    title: product.title,
+    price: product.price,
+    image: product.images[0],
+    sizes: [],
+  });
 
-    if (!size) return;
+  const onSizeQuantityChange = (size: ProductSize, quantity: number) => {
+    setSizeSelected((prev) => {
+      const selectedSize = prev[size.sizeId] || { ...size };
 
-    const cartProduct: CartProduct = {
-      id: product.id,
-      slug: product.slug,
-      title: product.title,
-      price: product.price,
-      quantity: quantity,
-      size: size,
-      image: product.images[0]
-    }
+      const newQuantity = Math.min(
+        Math.max(selectedSize.quantity + quantity, 0),
+        size.inStock
+      );
 
-    addProductToCart(cartProduct);
-    setPosted(false);
-    setQuantity(1);
-    setSize(undefined);
-
-
+      if (newQuantity > 0) {
+        return {
+          ...prev,
+          [size.sizeId]: { ...selectedSize, quantity: newQuantity },
+        };
+      } else {
+        const { [size.sizeId]: deletedSize, ...rest } = prev;
+        return rest;
+      }
+    });
   };
 
+  const handleSizeChange = (size: ProductSize) => {
+    const sizeIsSelected = sizeSelected[size.sizeId];
+
+    if (!sizeIsSelected) {
+      setSizeSelected((prev) => ({
+        ...prev,
+        [size.sizeId]: {
+          ...size,
+          quantity: 1,
+        },
+      }));
+      return;
+    }
+
+    setSizeSelected((prev) => {
+      delete prev[size.sizeId];
+      return { ...prev };
+    });
+  };
+
+  useEffect(() => {
+    setTempProduct((prev) => ({
+      ...prev,
+      sizes: Object.entries(sizeSelected).map(([key, quantity]) => ({
+        ...quantity,
+        sizeId: key,
+      })),
+    }));
+  }, [sizeSelected]);
 
   return (
     <>
-      {posted && !size && (
-        <span className="mt-2 text-red-500 fade-in">
-          Debe de seleccionar una talla*
-        </span>
-      )}
+      <div className="flex flex-wrap gap-2">
+        {product.sizes.map((size) => (
+          <Button
+            key={size.id}
+            disabled={size.inStock === 0}
+            className={cn({
+              "cursor-not-allowed": size.inStock === 0,
+            })}
+            onClick={() => handleSizeChange(size)}
+            variant={sizeSelected[size.sizeId] ? "default" : "outline"}
+          >
+            {sizes.map((s) => s.id === size.sizeId && s.size)}
+          </Button>
+        ))}
+      </div>
 
-      {/* Selector de Tallas */}
-      <SizeSelector
-        selectedSize={size}
-        availableSizes={product.sizes}
-        onSizeChanged={setSize}
-      />
+      {Object.entries(sizeSelected).map(([key, size]) => (
+        <div key={key} className="flex flex-col py-2">
+          <label className="text-secondary-foreground text-gray-400 text-sm">
+            Size: {sizes.map((s) => s.id === key && s.size)}
+          </label>
+          <div className="grid grid-cols-3 col-span-3 items-center my-2">
+            <Button onClick={() => onSizeQuantityChange(size, -1)}>
+              <MinusIcon className="w-4 h-4" />
+            </Button>
+            <span className="text-black text-center">{size.quantity}</span>
+            <Button onClick={() => onSizeQuantityChange(size, 1)}>
+              <PlusIcon className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
 
       {/* Selector de Cantidad */}
-      <QuantitySelector quantity={quantity} onQuantityChanged={setQuantity} />
 
       {/* Button */}
-      <button onClick={addToCart} className="btn-primary my-5">
-        Agregar al carrito
-      </button>
+      <Button
+        disabled={Object.entries(sizeSelected).length === 0}
+        onClick={() => addProductToCart(tempProduct)}
+        className="btn-primary my-5"
+      >
+        {Object.entries(sizeSelected).length > 0 ? (
+          <>
+            <ShoppingBag className="mr-2 h-4 w-4" /> Agregar al carrito
+          </>
+        ) : (
+          "Seleccione una talla"
+        )}
+      </Button>
     </>
   );
 };

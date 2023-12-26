@@ -3,12 +3,14 @@ export const revalidate = 0;
 // https://tailwindcomponents.com/component/hoverable-table
 import { getPaginatedOrders, getPaginatedProductsWithImages } from "@/actions";
 import { Pagination, ProductImage, Title } from "@/components";
+import { Button } from "@/components/ui/button";
 import { currencyFormat } from "@/utils";
 import Image from "next/image";
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { IoCardOutline } from "react-icons/io5";
+import { ShoppingCartIcon } from "lucide-react";
+import { ProductsTable } from "./ui/ProductsTable";
 
 interface Props {
   searchParams: {
@@ -28,11 +30,15 @@ export default async function OrdersPage({ searchParams }: Props) {
 
       <div className="flex justify-end mb-5">
         <Link href="/admin/product/new" className="btn-primary">
+          <Button variant="outline">
           Nuevo producto
+          </Button>
         </Link>
       </div>
 
-      <div className="mb-10">
+      <ProductsTable products={products}/>
+
+      {/* <div className="mb-10">
         <table className="min-w-full">
           <thead className="bg-gray-200 border-b">
             <tr>
@@ -64,13 +70,13 @@ export default async function OrdersPage({ searchParams }: Props) {
                 scope="col"
                 className="text-sm font-medium text-gray-900 px-6 py-4 text-left"
               >
-                Inventario
+                Tallas
               </th>
               <th
                 scope="col"
                 className="text-sm font-medium text-gray-900 px-6 py-4 text-left"
               >
-                Tallas
+                Stock
               </th>
             </tr>
           </thead>
@@ -83,7 +89,7 @@ export default async function OrdersPage({ searchParams }: Props) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <Link href={`/product/${product.slug}`}>
                     <ProductImage
-                      src={ product.ProductImage[0]?.url }
+                      src={product.ProductImage[0]?.url}
                       width={80}
                       height={80}
                       alt={product.title}
@@ -108,11 +114,19 @@ export default async function OrdersPage({ searchParams }: Props) {
                 </td>
 
                 <td className="text-sm text-gray-900 font-bold px-6 py-4 whitespace-nowrap">
-                  {product.inStock}
+                  <ul className="flex flex-col gap-2">
+                    {product.sizes.map(({ size, id }) => (
+                      <li key={id}>{size}</li>
+                    ))}
+                  </ul>
                 </td>
 
-                <td className="text-sm text-gray-900 font-bold px-6 py-4 whitespace-nowrap">
-                  {product.sizes.join(", ")}
+                <td className="text-sm text-gray-900 px-6 py-4 whitespace-nowrap">
+                <ul className="flex flex-col gap-2">
+                    {product.sizes.map(({ inStock, id }) => (
+                      <li key={id}>{inStock}</li>
+                    ))}
+                  </ul>
                 </td>
               </tr>
             ))}
@@ -120,7 +134,7 @@ export default async function OrdersPage({ searchParams }: Props) {
         </table>
 
         <Pagination totalPages={totalPages} />
-      </div>
+      </div> */}
     </>
   );
 }

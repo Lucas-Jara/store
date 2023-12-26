@@ -3,16 +3,14 @@ import { Metadata, ResolvingMetadata } from "next";
 
 import { notFound } from "next/navigation";
 
-import { titleFont } from "@/config/fonts";
 import {
   ProductMobileSlideshow,
   ProductSlideshow,
   QuantitySelector,
   SizeSelector,
-  StockLabel,
 } from "@/components";
-import { getProductBySlug } from "@/actions";
-import { AddToCart } from './ui/AddToCart';
+import { getProductBySlug, getSizes } from "@/actions";
+import { AddToCart } from "./ui/AddToCart";
 
 interface Props {
   params: {
@@ -40,7 +38,7 @@ export async function generateMetadata(
       title: product?.title ?? "Producto no encontrado",
       description: product?.description ?? "",
       // images: [], // https://misitioweb.com/products/image.png
-      images: [ `/products/${ product?.images[1] }`],
+      images: [`/products/${product?.images[1]}`],
     },
   };
 }
@@ -48,6 +46,7 @@ export async function generateMetadata(
 export default async function ProductBySlugPage({ params }: Props) {
   const { slug } = params;
   const product = await getProductBySlug(slug);
+  const sizes = await getSizes();
 
   if (!product) {
     notFound();
@@ -74,15 +73,19 @@ export default async function ProductBySlugPage({ params }: Props) {
 
       {/* Detalles */}
       <div className="col-span-1 px-5">
-        <StockLabel slug={product.slug} />
+        <h1 className={` font-bold text-xl`}>{product.title}</h1>
 
-        <h1 className={` ${titleFont.className} antialiased font-bold text-xl`}>
-          {product.title}
-        </h1>
+        {/* <div className="flex gap-3 flex-wrap mt-3">
+          {product.sizes.map((size) => (
+            <button className="btn-primary" key={size.id}>
+              {size.size}
+            </button>
+          ))}
+        </div> */}
 
         <p className="text-lg mb-5">${product.price}</p>
 
-        <AddToCart product={ product } />
+        <AddToCart product={product} sizes={sizes} />
 
         {/* Descripción */}
         <h3 className="font-bold text-sm">Descripción</h3>
